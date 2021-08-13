@@ -132,10 +132,11 @@ function deposit(contract, pid, amount) {
 }
 
 function isAllowed(amount) {
-    if (amount != null) {
-        return false
-    }
-    return amount.eq(0) ? false : true
+    // console.log(amount)
+    // if (amount == null) {
+    //     return false
+    // }
+    return amount==0 ? false : true
 }
 
 
