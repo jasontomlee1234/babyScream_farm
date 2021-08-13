@@ -1,10 +1,26 @@
 import abi from "./abi/masterchef.json"
 import { Contract } from '@ethersproject/contracts'
-import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from '@web3-react/core'
-import styled from "styled-components";
+import { useWeb3React } from '@web3-react/core'
+import styled, { keyframes } from "styled-components";
 import { useEffect, useState } from "react";
 import { formatEther, parseEther } from '@ethersproject/units'
 import tokenAbi from './abi/maercs.json'
+
+
+const glow = keyframes`
+  0% {
+    box-shadow: 0 0 20px cyan;
+  }
+
+  50% {
+    box-shadow: 0 0 50px cyan;
+  }
+
+  100% {
+    box-shadow: 0 0 20px cyan;
+  }
+`;
+
 
 const StyledCard = styled.div`
 border-radius: 10px;
@@ -15,10 +31,53 @@ width: 300px;
 border-style: solid;
 color: cyan;
 margin:auto;
-padding: 30px
+padding: 30px;
+animation: ${glow} 1s linear infinite;
+margin-top: 100px;
+
+div:{
+    padding: 20px;
+    margin: 20px;
+}
 `
 
-const StyledButton = styled.button``
+const StyledInput = styled.input`
+background: transparent;
+    border: solid;
+    color: cyan;
+    height: 30px;
+    width: 70%;
+    border-radius: 10px;
+    border-width: medium;
+box-shadow: 0 0 10px cyan;
+
+&:focus{
+    outline: none;
+border-style: solid;
+border-color: cyan;
+border-radius: 10px;
+box-shadow: 0 0 20px cyan;
+}
+`
+
+const StyledButton = styled.button`
+background: transparent;
+flow: right;
+color: cyan;
+border: cyan;
+border-radius: 100px;
+border-width: medium;
+border-color: cyan;
+border-style: solid;
+height: 30px;
+box-shadow: 0 0 20px cyan;
+width: 80px
+`
+
+const StyledRow = styled.div`
+display: flex
+justify-content: space-between;
+`
 
 
 function getContract(address, abi, library) {
@@ -43,6 +102,12 @@ function getPendingReward(contract, user) {
     }).catch(e => console.log)
 }
 
+function getAllowance(contract, owner, spender) {
+    return contract.allowance(owner, spender).then(rst => {
+        return rst
+    }).catch(e => console.log)
+}
+
 function getBalance(contract, user) {
     return contract.balanceOf(user).then(rst => {
         console.log("fffff", rst)
@@ -50,13 +115,27 @@ function getBalance(contract, user) {
     }).catch(e => console.log)
 }
 
+function approve(contract, spender) {
+    contract.approve(spender, parseEther("99999999999999999999999999999"))
+}
 
 function withdraw(contract, pid, amount) {
-    contract.withdraw(pid.toString(), parseEther(amount))
+    contract.withdraw(pid.toString(), parseEther(amount)).then(rs => {
+        rs.wait().then(e => {
+            console.log(e)
+        })
+    })
 }
 
 function deposit(contract, pid, amount) {
     contract.deposit(pid.toString(), parseEther(amount))
+}
+
+function isAllowed(amount) {
+    if (amount != null) {
+        return false
+    }
+    return amount.eq(0) ? false : true
 }
 
 
@@ -69,6 +148,7 @@ function FarmCard(props) {
     const [lpBalance, setLpBalance] = useState(0)
     const [depositAmount, setDepositAmount] = useState(0)
     const [withdrawAmount, setWithdrawAmount] = useState(0)
+    const [allowance, setAllowance] = useState(0)
 
     function handleDepositChange(event) {
         setDepositAmount(event.target.value)
@@ -78,26 +158,26 @@ function FarmCard(props) {
         setWithdrawAmount(event.target.value)
     }
 
-    useEffect(() => {
-        const contract = getContract(props.address, abi, library ? library.getSigner(account).connectUnchecked() : library)
-        setContract(contract)
-        getPendingReward(contract, account).then(rst => {
-            SetPendingReward(rst)
-        })
-        getUserInfo(contract, account).then(rst => {
-            setStaked(rst['amount'])
-        })
-        getPoolInfo(contract, props.pid).then(rst => {
-            if (rst.length > 0) {
-                console.log("rst:", rst)
-                const lp = getContract(rst.lpToken, tokenAbi, library ? library.getSigner(account).connectUnchecked() : library)
-                setLpContract(lp)
-                getBalance(lp, account).then(balance => {
-                    setLpBalance(balance)
-                })
+    useEffect(async () => {
+        const _contract = getContract(props.address, abi, library ? library.getSigner(account).connectUnchecked() : library)
+        setContract(_contract)
+        const _pendingReward = await getPendingReward(_contract, account)
+        SetPendingReward(_pendingReward)
 
-            }
-        })
+        const _userInfo = await getUserInfo(_contract, account)
+        setStaked(_userInfo['amount'])
+
+        const _poolInfo = await getPoolInfo(_contract, props.pid)
+        if (_poolInfo.length > 0) {
+            const lp = getContract(_poolInfo.lpToken, tokenAbi, library ? library.getSigner(account).connectUnchecked() : library)
+            setLpContract(lp)
+            const _balance = await getBalance(lp, account)
+            setLpBalance(_balance)
+
+            const _allowance = await getAllowance(lp, account, _contract.address)
+            setAllowance(_allowance)
+        }
+
     }, [account])
 
 
@@ -105,27 +185,39 @@ function FarmCard(props) {
         <StyledCard>
             <div>babyScream/Scream</div>
             <div>deposit: {staked ? formatEther(staked.toString()) : 0}</div>
-            <div>earned: {pendingReward ? formatEther(pendingReward.toString()) : 0}</div>
-            <div>
-                <StyledButton onClick={() => {
-                    withdraw(contract, props.pid, '0')
-                }} disabled={account ? false : true}>harvest</StyledButton>
-            </div>
+            <StyledRow>
+                <div>earned: {pendingReward ? formatEther(pendingReward.toString()) : 0}</div>
+                <div>
+                    <StyledButton onClick={() => {
+                        withdraw(contract, props.pid, '0')
+                    }} disabled={account ? false : true}>harvest</StyledButton>
+                </div>
+            </StyledRow>
             <div>
                 <div>Deposit: </div>
                 <div>balance: {account ? formatEther(lpBalance.toString()) : 0}</div>
-                <input disabled={account ? false : true} type="number" value={depositAmount} onChange={handleDepositChange}></input>
-                <StyledButton onClick={() => {
-                    deposit(contract, props.pid, depositAmount)
-                }} disabled={account ? false : true}>Deposit</StyledButton>
+                <StyledRow>
+                    <div>
+                        <StyledInput disabled={account ? false : true} type="number" value={depositAmount} onChange={handleDepositChange}></StyledInput>
+                        {
+                            isAllowed(allowance) ? <StyledButton onClick={() => {
+                                deposit(contract, props.pid, depositAmount)
+                            }} disabled={account ? false : true}>Deposit</StyledButton> :
+                                <StyledButton onClick={() => {
+                                    approve(lpContract, contract.address)
+                                }} disabled={account ? false : true}>Approve</StyledButton>
+                        }
+                    </div>
+                </StyledRow>
+
             </div>
-            <div>
-                <div>Withdraw: </div>
-                <input disabled={account ? false : true} type="number" value={withdrawAmount} onChange={handleWithdrawChange}></input>
+            <div>Withdraw: </div>
+            <StyledRow>
+                <StyledInput disabled={account ? false : true} type="number" value={withdrawAmount} onChange={handleWithdrawChange}></StyledInput>
                 <StyledButton onClick={() => {
                     withdraw(contract, props.pid, withdrawAmount)
                 }} disabled={account ? false : true}>Withdraw</StyledButton>
-            </div>
+            </StyledRow>
         </StyledCard>
     )
 }

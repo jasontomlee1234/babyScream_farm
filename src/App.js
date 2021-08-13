@@ -1,15 +1,12 @@
-import logo from './logo.svg';
 import './App.css';
-import { useEthers, useEtherBalance } from '@usedapp/core'
 import NavBar from './NavBar'
 import FarmCard from './FarmCard'
 import Faucet from './Faucet'
-import { useEffect, useState } from 'react';
-import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from '@web3-react/core'
+import { useWeb3React } from '@web3-react/core'
 
 
 function App() {
-  const { connector, library, chainId, account, activate, deactivate, active, error } = useWeb3React()
+  const {account} = useWeb3React()
   return (
     <div>
       <div>

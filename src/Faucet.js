@@ -2,7 +2,7 @@ import abi from './abi/maercs.json'
 import { useWeb3React } from '@web3-react/core'
 import { useEffect, useState } from "react";
 import { Contract } from '@ethersproject/contracts'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { parseEther } from '@ethersproject/units'
 
 
 function getTokenContract(address, abi, library) {

@@ -1,10 +1,10 @@
 
 import styled from "styled-components";
-import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from '@web3-react/core'
+import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import abi from './abi/maercs.json'
 import { Contract } from '@ethersproject/contracts'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { formatEther } from '@ethersproject/units'
 import { useEffect, useState } from "react";
 
 const injected = new InjectedConnector({ supportedChainIds: [1, 3, 4, 5, 4002] })
@@ -17,10 +17,12 @@ border-width: medium;
 padding: 10px;
 margin: 10px;
 border-style: solid;
+box-shadow: 0 0 20px cyan;
+
 `
 
 const StyledButton = styled.button`
-background: black;
+background: transparent;
 float: right;
 color: cyan;
 border: cyan;
@@ -30,6 +32,8 @@ border-color: cyan;
 width: 100px;
 border-style: solid;
 height: 50px;
+box-shadow: 0 0 20px cyan;
+
 `
 
 const StyledTitle = styled.div`
