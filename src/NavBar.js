@@ -7,7 +7,7 @@ import { Contract } from '@ethersproject/contracts'
 import { formatEther } from '@ethersproject/units'
 import { useEffect, useState } from "react";
 
-const injected = new InjectedConnector({ supportedChainIds: [1, 3, 4, 5, 4002] })
+const injected = new InjectedConnector({ supportedChainIds: [4002, 250] })
 const StyledDiv = styled.div`
 background: black;
 border-radius: 10px;
@@ -61,20 +61,20 @@ function getBalance(contract, user) {
 function NavBar(props) {
     const { connector, library, chainId, account, activate, deactivate, active, error } = useWeb3React()
 
-    const [maercsBalance, setMaercsBalance] = useState(0)
+    const [wooBalance, setWooBalance] = useState(0)
 
     useEffect(() => {
         const contract = getTokenContract(props.address, abi, library ? library.getSigner(account).connectUnchecked() : library)
         getBalance(contract, account).then(rst => {
-            setMaercsBalance(rst)
+            setWooBalance(rst)
         })
     }, [account])
 
     return (
         <StyledDiv>
             <StyledTitle>BabyScream</StyledTitle>
-            {maercsBalance ? <StyledBalance>
-                {"maercs balance: "+formatEther(maercsBalance.toString())}
+            {wooBalance ? <StyledBalance>
+                {"$Woo balance: "+formatEther(wooBalance.toString())}
             </StyledBalance> : ""}
             <StyledButton onClick={() => { account ? deactivate() : activate(injected) }}>{
                 account ? account.slice(0, 6) + "..." : "Connect"

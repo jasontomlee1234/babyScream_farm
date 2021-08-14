@@ -98,7 +98,7 @@ function getPoolInfo(contract, pid) {
 }
 
 function getPendingReward(contract, user) {
-    return contract.pendingmaercs(0, user).then(rst => {
+    return contract.pendingwoo(0, user).then(rst => {
         return rst
     }).catch(e => console.log)
 }
@@ -111,7 +111,6 @@ function getAllowance(contract, owner, spender) {
 
 function getBalance(contract, user) {
     return contract.balanceOf(user).then(rst => {
-        console.log("fffff", rst)
         return rst
     }).catch(e => console.log)
 }
@@ -133,10 +132,6 @@ function deposit(contract, pid, amount) {
 }
 
 function isAllowed(amount) {
-    // console.log(amount)
-    // if (amount == null) {
-    //     return false
-    // }
     return amount==0 ? false : true
 }
 
@@ -206,7 +201,7 @@ function FarmCard(props) {
 
     return (
         <StyledCard>
-            <div>babyScream/Scream</div>
+            <div>{props.pairName}</div>
             <div>deposit: {staked ? formatEther(staked.toString()) : 0}</div>
             <StyledRow>
                 <div>earned: {pendingReward ? formatEther(pendingReward.toString()) : 0}</div>
