@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { formatEther, parseEther } from '@ethersproject/units'
 import tokenAbi from './abi/maercs.json'
 
+import {useInterval} from './useInterval'
 
 const glow = keyframes`
   0% {
@@ -159,7 +160,7 @@ function FarmCard(props) {
         setWithdrawAmount(event.target.value)
     }
 
-    useEffect(async () => {
+    useInterval(async()=>{
         const _contract = getContract(props.address, abi, library ? library.getSigner(account).connectUnchecked() : library)
         setContract(_contract)
         const _pendingReward = await getPendingReward(_contract, account)
@@ -178,8 +179,29 @@ function FarmCard(props) {
             const _allowance = await getAllowance(lp, account, _contract.address)
             setAllowance(_allowance)
         }
+    },1000)
 
-    }, [account])
+    // useEffect(async () => {
+    //     const _contract = getContract(props.address, abi, library ? library.getSigner(account).connectUnchecked() : library)
+    //     setContract(_contract)
+    //     const _pendingReward = await getPendingReward(_contract, account)
+    //     SetPendingReward(_pendingReward)
+
+    //     const _userInfo = await getUserInfo(_contract, account)
+    //     setStaked(_userInfo['amount'])
+
+    //     const _poolInfo = await getPoolInfo(_contract, props.pid)
+    //     if (_poolInfo.length > 0) {
+    //         const lp = getContract(_poolInfo.lpToken, tokenAbi, library ? library.getSigner(account).connectUnchecked() : library)
+    //         setLpContract(lp)
+    //         const _balance = await getBalance(lp, account)
+    //         setLpBalance(_balance)
+
+    //         const _allowance = await getAllowance(lp, account, _contract.address)
+    //         setAllowance(_allowance)
+    //     }
+
+    // }, [account])
 
 
     return (
